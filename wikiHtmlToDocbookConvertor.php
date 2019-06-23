@@ -18,6 +18,12 @@ if( $request_type == "getDocbook" ) {
 			$ext = pathinfo($filename, PATHINFO_EXTENSION);
 			if ( $ext == "html" || $ext == "xsl" ) {
 				move_uploaded_file( $tmpFilePath, "./uploads/$docbook_folder/$filename" );
+				if ( $ext == "xsl" ) {
+					$xsl_contents = file_get_contents( "./uploads/$docbook_folder/$filename" );
+					$docbookXslPath = realpath( __DIR__ .'/docbook-xsl-1.79.1/fo/docbook.xsl' );
+					$xsl_contents = str_replace( 'DOCBOOKXSLPLACEHOLDER', $docbookXslPath, $xsl_contents );
+					file_put_contents( "./uploads/$docbook_folder/$filename", $xsl_contents );
+				}
 			} else {
 				move_uploaded_file( $tmpFilePath, "./uploads/$docbook_folder/images/$filename" );
 			}
