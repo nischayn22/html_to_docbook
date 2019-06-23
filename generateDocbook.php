@@ -33,7 +33,7 @@ function generateDocbookXML( $docbook_folder ) {
 		$pandoc_output = shell_exec( $cmd );
 
 		$tmpDoc = new DOMDocument();
-		$tmpDoc->loadHTML( $pandoc_output );
+		$tmpDoc->loadXML( '<body>' . $pandoc_output . '</body>' );
 
 		foreach( $tmpDoc->getElementsByTagName( 'figure' ) as $pandoc_node ) {
 			$label = array_shift( $xreflabels );
@@ -54,7 +54,9 @@ function generateDocbookXML( $docbook_folder ) {
 		foreach( $tmpDoc->getElementsByTagName( 'link' ) as $pandoc_node ) {
 			if ( $pandoc_node->hasAttribute( 'role' ) && $pandoc_node->getAttribute( 'role' ) == 'footnote' ) {
 				$footnoteNode = $tmpDoc->createElement( 'footnote' );
-				$footnoteNode->textContent = urldecode( $pandoc_node->getAttribute( 'xlink:href' ) );
+				$footnoteParaNode = $tmpDoc->createElement( 'para' );
+				$footnoteParaNode->textContent = urldecode( $pandoc_node->getAttribute( 'xlink:href' ) );
+				$footnoteNode->appendChild( $footnoteParaNode );
 				$replace_nodes_pandoc[] = [ $footnoteNode, $pandoc_node ];
 			}
 		}
@@ -81,7 +83,8 @@ function generateDocbookXML( $docbook_folder ) {
 		$replace_pair[1]->parentNode->replaceChild( $replace_pair[0], $replace_pair[1] );
 	}
 
-	$docbook_xml = $dom->saveHTML();
+	$dom->xmlStandalone = false;
+	$docbook_xml = $dom->saveXML();
 	$docbook_xml = preg_replace_callback(
 		'/\bFOOTNOTE\b(.*)\bFOOTNOTE\b/',
 		function( $matches ) use ( &$placeholderId ) {
@@ -134,7 +137,7 @@ function generateOutput( $docbook_folder ) {
 	$output_filename = $docbook_folder .".pdf";
 	$output_filepath = "./uploads/$docbook_folder/". $output_filename;
 
-	shell_exec( "xsltproc --output ./uploads/$docbook_folder/$docbook_folder.fo ./uploads/$docbook_folder/docbookexport.xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
+	shell_exec( "xsltproc --output ./uploads/$docbook_folder/$docbook_folder.fo --stringparam fop1.extensions 1 ./uploads/$docbook_folder/docbookexport.xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
 
 	shell_exec( "fop -fo " . "./uploads/$docbook_folder/$docbook_folder.fo -pdf $output_filepath" );
 	$result = json_decode( file_get_contents( "./uploads/$docbook_folder/$docbook_folder.json" ), true );
@@ -143,86 +146,4 @@ function generateOutput( $docbook_folder ) {
 	$result['docbook_zip'] = "/uploads/$docbook_folder/$docbook_folder.zip";
 	$result['docbook_pdf'] = "/uploads/$docbook_folder/$docbook_folder.pdf";
 	file_put_contents( "./uploads/$docbook_folder/$docbook_folder.json", json_encode( $result ) );
-}
-
-function getDocbookfromHTML( $page_id, $html, $docbook_folder, $index_terms, &$all_files ) {
-	global $wgDocBookExportPandocPath;
-
-	$temp_file = tempnam(sys_get_temp_dir(), 'docbook_html');
-	if ( !file_put_contents( $temp_file, $html ) ) {
-		return '';
-	}
-
-	$cmd = escapeshellcmd( $wgDocBookExportPandocPath ) . " ". $temp_file . " -f html -t docbook 2>&1";
-	$pandoc_output = shell_exec( $cmd );
-
-	if ( !$pandoc_output ) {
-		return '';
-	}
-
-	$doc = new DOMDocument();
-	$doc->loadXML( '<root xmlns:xlink="http://www.w3.org/1999/xlink">' . $pandoc_output . '</root>' );
-
-	foreach( $doc->getElementsByTagName( 'figure' ) as $node ) {
-		$label = array_shift( $xreflabels );
-		$node->setAttribute( 'xreflabel', $label );
-		$node->setAttribute( 'id', $label );
-		$node->appendChild( $doc->createElement( 'title', $label ) );
-	}
-
-	foreach( $doc->getElementsByTagName( 'imagedata' ) as $node ) {
-		$file_url = $node->getAttribute( 'fileref' );
-		$filename = basename( $file_url );
-		$file_path = wfFindFile( $filename )->getLocalRefPath();
-		file_put_contents( "./uploads/$docbook_folder/images/$filename", file_get_contents( $file_path ) );
-		$node->setAttribute( 'fileref', "images/$filename" );
-		$all_files["images/$filename"] = "./uploads/$docbook_folder/images/$filename";
-	}
-
-	foreach( $doc->getElementsByTagName( 'link' ) as $node ) {
-		if ( $node->hasAttribute( 'role' ) && $node->getAttribute( 'role' ) == 'xref' ) {
-			$label = str_replace( '_', ' ', explode( '#', $node->getAttribute( 'xlink:href' ) )[1] );
-			$xrefNode = $doc->createElement( 'xref' );
-			$xrefNode->setAttribute( 'linkend', $label );
-			$node->parentNode->replaceChild( $xrefNode , $node );
-		} else if ( $node->hasAttributeNS( 'http://www.w3.org/1999/xlink', 'href' ) ) {
-			$href = $node->getAttributeNS( 'http://www.w3.org/1999/xlink', 'href' );
-			$page_name = basename( $href );
-			if ( Title::newFromText( $page_name )->exists() ) {
-				$linkNode = $doc->createElement( 'link' );
-				$linkNode->setAttribute( 'linkend', "page-" . $page_name );
-				$linkNode->nodeValue = $node->nodeValue;
-				$node->parentNode->replaceChild( $linkNode , $node );
-			}
-		}
-	}
-
-	foreach( $doc->getElementsByTagName( 'para' ) as $node ) {
-		if ( $node->hasChildNodes() ) {
-			foreach($node->childNodes as $node) {
-				if ($node->nodeName == '#text') {
-					foreach( $index_terms as $index_term ) {
-						$index_term = trim($index_term);
-						$node->nodeValue = str_replace( $index_term , "INDEXPLACEHOLDERBEGIN" . $index_term . "INDEXPLACEHOLDEREND" . $index_term , $node->nodeValue );
-					}
-				}
-			}
-		}
-	}
-
-	if ( $doc->getElementsByTagName( 'root' )->length > 0 ) {
-		$pandoc_output = '';
-		foreach ( $doc->getElementsByTagName( 'root' )->item(0)->childNodes as $node ) {
-		   $pandoc_output .= $doc->saveXML( $node );
-		}
-	}
-
-	$pandoc_output = str_replace( "INDEXPLACEHOLDERBEGIN", "<indexterm><primary>", $pandoc_output );
-	$pandoc_output = str_replace( "INDEXPLACEHOLDEREND", "</primary></indexterm>", $pandoc_output );
-
-	$placeholderId = 0;
-	foreach( $footnotes as $footnote ) {
-		$pandoc_output = str_replace( 'PLACEHOLDER-' . ++$placeholderId, '<footnote><para>' . $footnote . '</para></footnote>', $pandoc_output );
-	}
-	return '<anchor id="page-'. str_replace( ' ', '_', $page_id ) .'" />' . $pandoc_output;
 }

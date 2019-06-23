@@ -10,7 +10,7 @@ foreach( $dirs as $docbook_folder ) {
 		if ( $ext == "json" ) {
 			$docbook_folder = basename( $file, ".json" );
 			$result = json_decode( file_get_contents( "./uploads/$docbook_folder/$docbook_folder.json" ), true );
-			if ( $result['status'] == "In Queue" ) {
+			if ( $result['status'] != "Docbook generated" ) {
 				chdir();
 				exec( "php generateDocbook.php $docbook_folder" );
 			}
