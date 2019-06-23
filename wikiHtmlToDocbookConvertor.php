@@ -33,6 +33,7 @@ if( $request_type == "getDocbook" ) {
 	$result['result'] = "success";
 	$result['status'] = "In Queue";
 	file_put_contents( "./uploads/$docbook_folder/$docbook_folder.json", json_encode( $result ) );
+	exec( "php generateDocbook.php $docbook_folder" );
 } else if ( $request_type == "getDocbookStatus" ) {
 	$result = json_decode( file_get_contents( "./uploads/$docbook_folder/$docbook_folder.json" ), true );
 } else {

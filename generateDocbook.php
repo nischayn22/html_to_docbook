@@ -1,5 +1,8 @@
 <?php
 
+if ( empty( $argv[1] ) ) {
+	exit;
+}
 generateDocbookXML( $argv[1] );
 generateOutput( $argv[1] );
 
@@ -140,10 +143,14 @@ function generateOutput( $docbook_folder ) {
 	shell_exec( "xsltproc --output ./uploads/$docbook_folder/$docbook_folder.fo --stringparam fop1.extensions 1 ./uploads/$docbook_folder/docbookexport.xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
 
 	shell_exec( "fop -fo " . "./uploads/$docbook_folder/$docbook_folder.fo -pdf $output_filepath" );
+	shell_exec( "./docbook2odf-0.244/utils/docbook2odf -xsl-file=./docbook2odf-0.244/xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
+	rename( "$docbook_folder.odt", "./uploads/$docbook_folder/$docbook_folder.odt" );
+
 	$result = json_decode( file_get_contents( "./uploads/$docbook_folder/$docbook_folder.json" ), true );
 
 	$result['status'] = 'Docbook generated';
 	$result['docbook_zip'] = "/uploads/$docbook_folder/$docbook_folder.zip";
+	$result['docbook_odf'] = "/uploads/$docbook_folder/$docbook_folder.odf";
 	$result['docbook_pdf'] = "/uploads/$docbook_folder/$docbook_folder.pdf";
 	file_put_contents( "./uploads/$docbook_folder/$docbook_folder.json", json_encode( $result ) );
 }
