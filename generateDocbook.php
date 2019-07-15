@@ -11,7 +11,9 @@ function generateDocbookXML( $docbook_folder ) {
 	$result['status'] = "Starting to Process";
 	file_put_contents( "./uploads/$docbook_folder/$docbook_folder.json", json_encode( $result ) );
 
-	$page_html = file_get_contents( "./uploads/$docbook_folder/$docbook_folder.html" );
+	$page_html = file_get_contents( "./uploads/$docbook_folder/$docbook_folder.pandochtml" );
+
+	$index_terms = json_decode( file_get_contents( "./uploads/$docbook_folder/index_terms.json" ) );
 
 	$dom = new DOMDocument();
 	libxml_use_internal_errors(true);
@@ -86,6 +88,8 @@ function generateDocbookXML( $docbook_folder ) {
 		$replace_pair[1]->parentNode->replaceChild( $replace_pair[0], $replace_pair[1] );
 	}
 
+	recursiveAddIndexTerms( $dom, $dom, $index_terms );
+
 	$dom->xmlStandalone = false;
 	$docbook_xml = $dom->saveXML();
 	$docbook_xml = preg_replace_callback(
@@ -95,6 +99,8 @@ function generateDocbookXML( $docbook_folder ) {
 		},
 		$docbook_xml
 	);
+
+
 	if ( !file_put_contents( "./uploads/$docbook_folder/$docbook_folder.xml", $docbook_xml ) ) {
 		$result['result'] = "failed";
 		$result['error'] = "Failed writing docbook xml file";
@@ -104,6 +110,40 @@ function generateDocbookXML( $docbook_folder ) {
 	}
 	file_put_contents( "./uploads/$docbook_folder/$docbook_folder.json", json_encode( $result ) );
 }
+function recursiveAddIndexTerms( $dom, &$node, $index_terms ) {
+	if( $node->hasChildNodes() ) {
+		foreach( $node->childNodes as $childNode ) {
+			recursiveAddIndexTerms( $dom, $childNode, $index_terms );
+		}
+	} else if ( !empty( $node->nodeValue ) ) {
+		$tmpDoc = new DOMDocument();
+		$node_content = $node->nodeValue;
+		$indexOccurs = false;
+		foreach( $index_terms as $index_term ) {
+			$index_term = trim($index_term);
+			if ( strpos( $node_content, $index_term ) !== FALSE ) {
+				$node_content = str_replace(
+					$index_term, 
+					$index_term . '<indexterm><primary>' . $index_term . '</primary></indexterm>',
+					$node_content 
+				);
+				$indexOccurs = true;
+			}
+		}
+		if ( !$indexOccurs ) {
+			return;
+		}
+		$tmpDoc->loadXML( "<body>$node_content</body>" );
+		$replacement = $tmpDoc->getElementsByTagName( 'body' )->item(0)->childNodes;
+
+		$new_node = $dom->createDocumentFragment();
+		for ($i = 0; $i <= $replacement->length - 1; $i++) {
+			$child = $dom->importNode($replacement->item($i), true);
+			$new_node->appendChild($child);
+		}
+		$node->parentNode->replaceChild( $new_node, $node );
+	}
+}
 
 function generateOutput( $docbook_folder ) {
 	$all_files = [];
@@ -112,9 +152,14 @@ function generateOutput( $docbook_folder ) {
 	foreach( $files as $docbook_file ) {
 		$ext = pathinfo($docbook_file, PATHINFO_EXTENSION);
 		if ( !empty( $ext ) ) {
-			$all_files[$docbook_file] = "./uploads/$docbook_folder/images/$docbook_file";
+			$all_files["images/" . basename( $docbook_file )] = "./uploads/$docbook_folder/images/$docbook_file";
 		}
 	}
+
+	shell_exec( "xsltproc --output ./uploads/$docbook_folder/$docbook_folder.html --stringparam html.stylesheet  docbookexport_styles.css --stringparam fop1.extensions 1 ./docbook-xsl-1.79.1/html/docbook.xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
+
+	$all_files["$docbook_folder.html"] = "./uploads/$docbook_folder/$docbook_folder.html";
+	$all_files["docbookexport_styles.css"] = "./uploads/$docbook_folder/docbookexport_styles.css";
 
 	$output_filename = '';
 	$output_filepath = '';
@@ -151,6 +196,7 @@ function generateOutput( $docbook_folder ) {
 	$result['status'] = 'Docbook generated';
 	$result['docbook_zip'] = "/uploads/$docbook_folder/$docbook_folder.zip";
 	$result['docbook_odf'] = "/uploads/$docbook_folder/$docbook_folder.odf";
+	$result['docbook_html'] = "/uploads/$docbook_folder/$docbook_folder.zip";
 	$result['docbook_pdf'] = "/uploads/$docbook_folder/$docbook_folder.pdf";
 	file_put_contents( "./uploads/$docbook_folder/$docbook_folder.json", json_encode( $result ) );
 }
