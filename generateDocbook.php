@@ -13,7 +13,7 @@ function generateDocbookXML( $docbook_folder ) {
 
 	$page_html = file_get_contents( "./uploads/$docbook_folder/$docbook_folder.pandochtml" );
 
-	$index_terms = json_decode( file_get_contents( "./uploads/$docbook_folder/index_terms.json" ) );
+	$index_terms = json_decode( file_get_contents( "./uploads/$docbook_folder/index_terms.json" ), true );
 
 	$dom = new DOMDocument();
 	libxml_use_internal_errors(true);
@@ -119,12 +119,16 @@ function recursiveAddIndexTerms( $dom, &$node, $index_terms ) {
 		$tmpDoc = new DOMDocument();
 		$node_content = $node->nodeValue;
 		$indexOccurs = false;
-		foreach( $index_terms as $index_term ) {
+		foreach( $index_terms as $index_term => $index_data ) {
 			$index_term = trim($index_term);
+			$index_term_xml = '<indexterm><primary>' . $index_term . '</primary></indexterm>';
+			if ( !empty( $index_data['primary'] ) ) {
+				$index_term_xml = '<indexterm><primary>' . $index_data['primary'] . '</primary><secondary>'. $index_term .'</secondary></indexterm>';
+			}
 			if ( strpos( $node_content, $index_term ) !== FALSE ) {
 				$node_content = str_replace(
 					$index_term, 
-					$index_term . '<indexterm><primary>' . $index_term . '</primary></indexterm>',
+					$index_term . $index_term_xml,
 					$node_content 
 				);
 				$indexOccurs = true;
