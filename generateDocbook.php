@@ -215,7 +215,7 @@ function generateOutput( $docbook_folder ) {
 	shell_exec( "fop -fo " . "./uploads/$docbook_folder/$docbook_folder.fo -pdf $output_filepath" );
 	if ( file_exists( "./uploads/$docbook_folder/cover.pdf" ) ) {
 		$temp_filepath = "./uploads/$docbook_folder/temp.pdf";
-		shell_exec( "gs -dNOPAUSE -sDEVICE=pdfwrite -sOUTPUTFILE=$temp_filepath -dBATCH ./uploads/$docbook_folder/cover.pdf $output_filepath" );
+		shell_exec( "gs -dNOPAUSE -sDEVICE=pdfwrite -dPrinted=false -sOUTPUTFILE=$temp_filepath -dBATCH ./uploads/$docbook_folder/cover.pdf $output_filepath" );
 		rename( $temp_filepath, $output_filepath );
 	}
 
