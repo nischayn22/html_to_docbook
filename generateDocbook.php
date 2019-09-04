@@ -58,7 +58,28 @@ function generateDocbookXML( $docbook_folder ) {
 			if ( $pandoc_node->hasAttribute( 'role' ) && $pandoc_node->getAttribute( 'role' ) == 'footnote' ) {
 				$footnoteNode = $tmpDoc->createElement( 'footnote' );
 				$footnoteParaNode = $tmpDoc->createElement( 'para' );
-				$footnoteParaNode->textContent = urldecode( $pandoc_node->getAttribute( 'xlink:href' ) );
+				if ( $pandoc_node->hasAttribute( 'xlink:href' ) ) {
+					$footnoteParaNode->textContent = urldecode( $pandoc_node->getAttribute( 'xlink:href' ) );
+				} else if ( $pandoc_node->hasAttribute( 'url' ) ) {
+					$footnoteParaNode->textContent = urldecode( $pandoc_node->getAttribute( 'url' ) );
+				} else {
+					$footnoteParaNode->textContent = "Text Missing";
+				}
+				$footnoteNode->appendChild( $footnoteParaNode );
+				$replace_nodes_pandoc[] = [ $footnoteNode, $pandoc_node ];
+			}
+		}
+		foreach( $tmpDoc->getElementsByTagName( 'ulink' ) as $pandoc_node ) {
+			if ( $pandoc_node->hasAttribute( 'role' ) && $pandoc_node->getAttribute( 'role' ) == 'footnote' ) {
+				$footnoteNode = $tmpDoc->createElement( 'footnote' );
+				$footnoteParaNode = $tmpDoc->createElement( 'para' );
+				if ( $pandoc_node->hasAttribute( 'xlink:href' ) ) {
+					$footnoteParaNode->textContent = urldecode( $pandoc_node->getAttribute( 'xlink:href' ) );
+				} else if ( $pandoc_node->hasAttribute( 'url' ) ) {
+					$footnoteParaNode->textContent = urldecode( $pandoc_node->getAttribute( 'url' ) );
+				} else {
+					$footnoteParaNode->textContent = "Text Missing";
+				}
 				$footnoteNode->appendChild( $footnoteParaNode );
 				$replace_nodes_pandoc[] = [ $footnoteNode, $pandoc_node ];
 			}
