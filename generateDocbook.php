@@ -54,6 +54,7 @@ function generateDocbookXML( $docbook_folder ) {
 				$replace_nodes_pandoc[] = [ $xrefNode, $pandoc_node ];
 			}
 		}
+
 		foreach( $tmpDoc->getElementsByTagName( 'link' ) as $pandoc_node ) {
 			if ( $pandoc_node->hasAttribute( 'role' ) && $pandoc_node->getAttribute( 'role' ) == 'footnote' ) {
 				$footnoteNode = $tmpDoc->createElement( 'footnote' );
@@ -140,6 +141,7 @@ function recursiveAddIndexTerms( $dom, &$node, $index_terms ) {
 		$tmpDoc = new DOMDocument();
 		$node_content = $node->nodeValue;
 		$indexOccurs = false;
+		$index_term_xml_all = '';
 		foreach( $index_terms as $index_term => $index_data ) {
 			$index_term = trim($index_term);
 			$index_term_xml = '<indexterm><primary>' . $index_term . '</primary></indexterm>';
@@ -147,6 +149,7 @@ function recursiveAddIndexTerms( $dom, &$node, $index_terms ) {
 				$index_term_xml = '<indexterm><primary>' . $index_data['primary'] . '</primary><secondary>'. $index_term .'</secondary></indexterm>';
 			}
 			if ( strpos( $node_content, $index_term ) !== FALSE ) {
+				$index_term_xml_all .= $index_term_xml;
 				$node_content = str_replace(
 					$index_term, 
 					$index_term . $index_term_xml,
@@ -158,6 +161,20 @@ function recursiveAddIndexTerms( $dom, &$node, $index_terms ) {
 		if ( !$indexOccurs ) {
 			return;
 		}
+
+		if ( $node->parentNode->tagName == "title" ) {
+			$tmpDoc->loadXML( "<body>$index_term_xml_all</body>" );
+			$replacement = $tmpDoc->getElementsByTagName( 'body' )->item(0)->childNodes;
+
+			$new_node = $dom->createDocumentFragment();
+			for ($i = 0; $i <= $replacement->length - 1; $i++) {
+				$child = $dom->importNode($replacement->item($i), true);
+				$new_node->appendChild($child);
+			}
+			$node->parentNode->parentNode->insertBefore( $new_node, $node->parentNode );
+			return;
+		}
+
 		$tmpDoc->loadXML( "<body>$node_content</body>" );
 		$replacement = $tmpDoc->getElementsByTagName( 'body' )->item(0)->childNodes;
 
