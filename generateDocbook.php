@@ -264,7 +264,7 @@ function generateOutput( $docbook_folder ) {
 
 	$result['status'] = 'Docbook generated';
 	$result['docbook_zip'] = "/uploads/$docbook_folder/$docbook_folder.zip";
-	$result['docbook_odf'] = "/uploads/$docbook_folder/$docbook_folder.odf";
+	$result['docbook_odf'] = "/uploads/$docbook_folder/$docbook_folder.odt";
 	$result['docbook_html'] = "/uploads/$docbook_folder/$docbook_folder.zip";
 	$result['docbook_pdf'] = "/uploads/$docbook_folder/$docbook_folder.pdf";
 	file_put_contents( "./uploads/$docbook_folder/$docbook_folder.json", json_encode( $result ) );
