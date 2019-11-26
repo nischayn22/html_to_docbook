@@ -248,7 +248,12 @@ function generateOutput( $docbook_folder ) {
 	$output_filename = $docbook_folder .".pdf";
 	$output_filepath = "./uploads/$docbook_folder/". $output_filename;
 
-	shell_exec( "xsltproc --output ./uploads/$docbook_folder/$docbook_folder.fo --stringparam fop1.extensions 1 ./uploads/$docbook_folder/docbookexport.xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
+	$xsltproc_args = "";
+	if ( file_exists( "./uploads/$docbook_folder/xsltproc_args.txt" ) ) {
+		$xsltproc_args = file_get_contents( "./uploads/$docbook_folder/xsltproc_args.txt" );
+	}
+
+	shell_exec( "xsltproc --output ./uploads/$docbook_folder/$docbook_folder.fo $xsltproc_args --stringparam fop1.extensions 1 ./uploads/$docbook_folder/docbookexport.xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
 
 	shell_exec( "fop -fo " . "./uploads/$docbook_folder/$docbook_folder.fo -pdf $output_filepath" );
 	if ( file_exists( "./uploads/$docbook_folder/cover.pdf" ) ) {

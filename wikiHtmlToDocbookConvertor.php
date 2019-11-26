@@ -16,7 +16,7 @@ if( $request_type == "getDocbook" ) {
 		if ( !empty( $tmpFilePath ) ) {
 			$filename = $_FILES['files']['name'][$i];
 			$ext = pathinfo($filename, PATHINFO_EXTENSION);
-			if ( $ext == "pandochtml" || $ext == "xsl" || $ext == "json" || $ext == "css" || $ext == "pdf" ) {
+			if ( $ext == "pandochtml" || $ext == "xsl" || $ext == "json" || $ext == "css" || $ext == "pdf" || $ext == "txt" ) {
 				move_uploaded_file( $tmpFilePath, "./uploads/$docbook_folder/$filename" );
 				if ( $ext == "xsl" ) {
 					$xsl_contents = file_get_contents( "./uploads/$docbook_folder/$filename" );
