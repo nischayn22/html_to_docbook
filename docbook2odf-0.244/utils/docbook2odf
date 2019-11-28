@@ -414,8 +414,7 @@ if ($USE_ZIP)
 else
 {
 	print "using zip command\n" if $debug;
-	chdir($TEMP);
-	my $out=`zip -rq "$output_dir/$output_file" *`;
+	my $out=`zip -rq "$output_dir/$output_file" "$TEMP"/`;
 }
 
 print "\n" if $debug;

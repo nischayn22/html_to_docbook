@@ -262,7 +262,7 @@ function generateOutput( $docbook_folder ) {
 		rename( $temp_filepath, $output_filepath );
 	}
 
-	shell_exec( "./docbook2odf-0.244/utils/docbook2odf -xsl-file=./docbook2odf-0.244/xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
+	shell_exec( "./docbook2odf-0.244/utils/docbook2odf -f -xsl-file=./docbook2odf-0.244/xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
 	rename( "$docbook_folder.odt", "./uploads/$docbook_folder/$docbook_folder.odt" );
 
 	$result = json_decode( file_get_contents( "./uploads/$docbook_folder/$docbook_folder.json" ), true );
