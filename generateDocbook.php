@@ -262,8 +262,46 @@ function generateOutput( $docbook_folder ) {
 		rename( $temp_filepath, $output_filepath );
 	}
 
-	shell_exec( "./docbook2odf-0.244/utils/docbook2odf -f -xsl-file=./docbook2odf-0.244/xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
-	rename( "$docbook_folder.odt", "./uploads/$docbook_folder/$docbook_folder.odt" );
+	shell_exec( "./docbook2odf-0.244/utils/docbook2odf -f --debug -output-dir=./uploads/$docbook_folder -xsl-file=./docbook2odf-0.244/xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
+
+	$all_files = [];
+	$files = scandir( "./uploads/$docbook_folder/$docbook_folder.od.temp/Pictures" );
+	foreach( $files as $docbook_file ) {
+		$ext = pathinfo($docbook_file, PATHINFO_EXTENSION);
+		if ( !empty( $ext ) ) {
+			$all_files["Pictures/" . basename( $docbook_file )] = "./uploads/$docbook_folder/$docbook_folder.od.temp/Pictures/$docbook_file";
+		}
+	}
+	$files = scandir( "./uploads/$docbook_folder/$docbook_folder.od.temp/process" );
+	foreach( $files as $docbook_file ) {
+		$ext = pathinfo($docbook_file, PATHINFO_EXTENSION);
+		if ( !empty( $ext ) ) {
+			$all_files["process/" . basename( $docbook_file )] = "./uploads/$docbook_folder/$docbook_folder.od.temp/process/$docbook_file";
+		}
+	}
+	$files = scandir( "./uploads/$docbook_folder/$docbook_folder.od.temp/META-INF" );
+	foreach( $files as $docbook_file ) {
+		$ext = pathinfo($docbook_file, PATHINFO_EXTENSION);
+		if ( !empty( $ext ) ) {
+			$all_files["META-INF/" . basename( $docbook_file )] = "./uploads/$docbook_folder/$docbook_folder.od.temp/META-INF/$docbook_file";
+		}
+	}
+	$all_files["content.xml"] = "./uploads/$docbook_folder/$docbook_folder.od.temp/content.xml";
+	$all_files["meta.xml"] = "./uploads/$docbook_folder/$docbook_folder.od.temp/meta.xml";
+	$all_files["mimetype"] = "./uploads/$docbook_folder/$docbook_folder.od.temp/mimetype";
+	$all_files["styles.xml"] = "./uploads/$docbook_folder/$docbook_folder.od.temp/styles.xml";
+
+	$output_filename = $docbook_folder .".odt";
+	$output_filepath = "./uploads/$docbook_folder/". $output_filename;
+	$zip = new ZipArchive();
+
+	if ( $zip->open( $output_filepath, ZipArchive::CREATE ) !== TRUE ) {
+		exit( "cannot open <$output_filepath>\n" );
+	}
+	foreach( $all_files as $filename => $path ) {
+		$zip->addFromString( $filename, file_get_contents( $path ) );
+	}
+	$zip->close();
 
 	$result = json_decode( file_get_contents( "./uploads/$docbook_folder/$docbook_folder.json" ), true );
 

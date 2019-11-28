@@ -202,8 +202,8 @@ if ($verbose)
 ##################################################################################
 
 # create a temporary directory
-#my $TEMP=$output_dir.'/'.$output_file.'.temp';
-my $TEMP='/tmp/docbook2odf-'.$$.'-'.$output_file.'.tmp';
+my $TEMP=$output_dir.'/'.$output_file.'.temp';
+#my $TEMP='/tmp/docbook2odf-'.$$.'-'.$output_file.'.tmp';
 print "Creating TEMP directory ($TEMP)\n" if $debug;
 rmtree $TEMP if -e $TEMP; # delete TEMP directory if exists
 mkpath $TEMP;
@@ -414,7 +414,7 @@ if ($USE_ZIP)
 else
 {
 	print "using zip command\n" if $debug;
-	my $out=`zip -rq "$output_dir/$output_file" "$TEMP"/`;
+#	my $out=`zip -rq "$output_dir/$output_file" "$TEMP"`;
 }
 
 print "\n" if $debug;
