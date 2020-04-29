@@ -255,7 +255,7 @@ function generateOutput( $docbook_folder ) {
 
 	shell_exec( "xsltproc --output ./uploads/$docbook_folder/$docbook_folder.fo $xsltproc_args --stringparam fop1.extensions 1 ./uploads/$docbook_folder/docbookexport.xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
 
-	shell_exec( "fop -fo " . "./uploads/$docbook_folder/$docbook_folder.fo -pdf $output_filepath" );
+	shell_exec( "fop -r -fo ./uploads/$docbook_folder/$docbook_folder.fo -pdf $output_filepath" );
 	if ( file_exists( "./uploads/$docbook_folder/cover.pdf" ) ) {
 		$temp_filepath = "./uploads/$docbook_folder/temp.pdf";
 		shell_exec( "gs -dNOPAUSE -sDEVICE=pdfwrite -dPrinted=false -sOUTPUTFILE=$temp_filepath -dBATCH ./uploads/$docbook_folder/cover.pdf $output_filepath" );
