@@ -197,6 +197,23 @@ function generateOutput( $docbook_folder ) {
 			$all_files["images/" . basename( $docbook_file )] = "./uploads/$docbook_folder/images/$docbook_file";
 		}
 	}
+	$output_filename = $docbook_folder ."_xml.zip";
+	$output_filepath = "./uploads/$docbook_folder/". $output_filename;
+	$zip = new ZipArchive();
+
+	if( file_exists( $output_filepath ) ) {
+		unlink( $output_filepath );
+	}
+
+	if ( $zip->open( $output_filepath, ZipArchive::CREATE ) !== TRUE ) {
+		exit( "cannot open <$output_filepath>\n" );
+	}
+
+	foreach( $all_files as $filename => $path ) {
+		$zip->addFromString( $filename, file_get_contents( $path ) );
+	}
+	$zip->close();
+	unset( $all_files["$docbook_folder.xml"] );
 
 	shell_exec( "xsltproc --output ./uploads/$docbook_folder/$docbook_folder.html --stringparam html.stylesheet  docbookexport_styles.css --stringparam fop1.extensions 1 ./docbook-xsl-1.79.1/html/docbook.xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
 
@@ -224,11 +241,7 @@ function generateOutput( $docbook_folder ) {
 	$all_files["$docbook_folder.html"] = "./uploads/$docbook_folder/$docbook_folder.html";
 	$all_files["docbookexport_styles.css"] = "./uploads/$docbook_folder/docbookexport_styles.css";
 
-	$output_filename = '';
-	$output_filepath = '';
-	$filesize = 0;
-	$content_type = '';
-	$output_filename = $docbook_folder .".zip";
+	$output_filename = $docbook_folder ."_html.zip";
 	$output_filepath = "./uploads/$docbook_folder/". $output_filename;
 	$zip = new ZipArchive();
 
@@ -306,9 +319,9 @@ function generateOutput( $docbook_folder ) {
 	$result = json_decode( file_get_contents( "./uploads/$docbook_folder/$docbook_folder.json" ), true );
 
 	$result['status'] = 'Docbook generated';
-	$result['docbook_zip'] = "/uploads/$docbook_folder/$docbook_folder.zip";
+	$result['docbook_zip'] = "/uploads/$docbook_folder/$docbook_folder" . "_xml.zip";
 	$result['docbook_odf'] = "/uploads/$docbook_folder/$docbook_folder.odt";
-	$result['docbook_html'] = "/uploads/$docbook_folder/$docbook_folder.zip";
+	$result['docbook_html'] = "/uploads/$docbook_folder/$docbook_folder" . "_html.zip";
 	$result['docbook_pdf'] = "/uploads/$docbook_folder/$docbook_folder.pdf";
 	file_put_contents( "./uploads/$docbook_folder/$docbook_folder.json", json_encode( $result ) );
 }
