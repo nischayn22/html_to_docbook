@@ -219,25 +219,6 @@ function generateOutput( $docbook_folder ) {
 
 	$page_html = file_get_contents( "./uploads/$docbook_folder/$docbook_folder.pandochtml" );
 
-	$cover_dom = new DOMDocument();
-	libxml_use_internal_errors(true);
-	$cover_dom->loadHtml( $page_html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
-	libxml_clear_errors();
-	$cover_nodes = $cover_dom->getElementsByTagName( 'cover' );
-	if ( $cover_nodes->length > 0 ) {
-		$cover_node = $cover_nodes->item(0);
-		$dom = new DOMDocument();
-		$docbook_html = file_get_contents( "./uploads/$docbook_folder/$docbook_folder.html" );
-		$dom->loadHtml( $docbook_html );
-		$body = $dom->getElementsByTagName( 'body' )->item(0);
-		$cover_child = $dom->importNode( $cover_node, true );
-		$body->insertBefore( $cover_child,$body->firstChild );
-		$docbook_html = $dom->saveXML();
-		$docbook_html = str_replace( "<cover><pandoc_html>", "<div>", $docbook_html );
-		$docbook_html = str_replace( "</cover></pandoc_html>", "</div>", $docbook_html );
-		file_put_contents( "./uploads/$docbook_folder/$docbook_folder.html", $docbook_html );
-	}
-
 	$all_files["$docbook_folder.html"] = "./uploads/$docbook_folder/$docbook_folder.html";
 	$all_files["docbookexport_styles.css"] = "./uploads/$docbook_folder/docbookexport_styles.css";
 
@@ -269,11 +250,6 @@ function generateOutput( $docbook_folder ) {
 	shell_exec( "xsltproc --output ./uploads/$docbook_folder/$docbook_folder.fo $xsltproc_args --stringparam fop1.extensions 1 ./uploads/$docbook_folder/docbookexport.xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
 
 	shell_exec( "fop -r -fo ./uploads/$docbook_folder/$docbook_folder.fo -pdf $output_filepath" );
-	if ( file_exists( "./uploads/$docbook_folder/cover.pdf" ) ) {
-		$temp_filepath = "./uploads/$docbook_folder/temp.pdf";
-		shell_exec( "gs -dNOPAUSE -sDEVICE=pdfwrite -dPrinted=false -sOUTPUTFILE=$temp_filepath -dBATCH ./uploads/$docbook_folder/cover.pdf $output_filepath" );
-		rename( $temp_filepath, $output_filepath );
-	}
 
 	shell_exec( "./docbook2odf-0.244/utils/docbook2odf -f --debug -output-dir=./uploads/$docbook_folder -xsl-file=./docbook2odf-0.244/xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
 
