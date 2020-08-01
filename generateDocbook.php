@@ -188,12 +188,19 @@ function recursiveAddIndexTerms( $dom, &$node, $index_terms ) {
 }
 
 function generateOutput( $docbook_folder ) {
+	unlink( "./uploads/$docbook_folder/output.log" );
+	error_log( "Starting to process...\n", 3, "./uploads/$docbook_folder/output.log" );
+
 	$all_files = [];
+
+	error_log( "Adding file $docbook_folder.xml to images directory\n", 3, "./uploads/$docbook_folder/output.log" );
 	$all_files["$docbook_folder.xml"] = "./uploads/$docbook_folder/$docbook_folder.xml";
 	$files = scandir( "./uploads/$docbook_folder/images" );
+
 	foreach( $files as $docbook_file ) {
 		$ext = pathinfo($docbook_file, PATHINFO_EXTENSION);
 		if ( !empty( $ext ) ) {
+			error_log( "Adding file $docbook_file to images directory\n", 3, "./uploads/$docbook_folder/output.log" );
 			$all_files["images/" . basename( $docbook_file )] = "./uploads/$docbook_folder/images/$docbook_file";
 		}
 	}
@@ -205,17 +212,29 @@ function generateOutput( $docbook_folder ) {
 		unlink( $output_filepath );
 	}
 
+	error_log( "Creating zip archive $output_filepath\n", 3, "./uploads/$docbook_folder/output.log" );
 	if ( $zip->open( $output_filepath, ZipArchive::CREATE ) !== TRUE ) {
 		exit( "cannot open <$output_filepath>\n" );
 	}
 
 	foreach( $all_files as $filename => $path ) {
+		error_log( "Adding file $filename to zip archive\n", 3, "./uploads/$docbook_folder/output.log" );
 		$zip->addFromString( $filename, file_get_contents( $path ) );
 	}
+	error_log( "Closing zip archive\n", 3, "./uploads/$docbook_folder/output.log" );
 	$zip->close();
 	unset( $all_files["$docbook_folder.xml"] );
 
-	shell_exec( "xsltproc --output ./uploads/$docbook_folder/$docbook_folder.html --stringparam html.stylesheet  docbookexport_styles.css --stringparam fop1.extensions 1 ./docbook-xsl-1.79.1/html/docbook.xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
+	error_log( "Creating HTML file ./uploads/$docbook_folder/$docbook_folder.html\n", 3, "./uploads/$docbook_folder/output.log" );
+
+	$xslt_output_log = [];
+	$return_value = 0;
+
+	unlink( "./uploads/$docbook_folder/xslt_html_output.log" );
+	exec( "xsltproc --output ./uploads/$docbook_folder/$docbook_folder.html --stringparam html.stylesheet docbookexport_styles.css --stringparam fop1.extensions 1 ./docbook-xsl-1.79.1/html/docbook.xsl ./uploads/$docbook_folder/$docbook_folder.xml >> ./uploads/$docbook_folder/xslt_html_output.log 2>&1", $xslt_output_log, $return_value );
+
+	error_log( implode( "\n", $xslt_output_log ) . "\n", 3, "./uploads/$docbook_folder/output.log" );
+	error_log( "Process exited with code $return_value\n", 3, "./uploads/$docbook_folder/output.log" );
 
 	$page_html = file_get_contents( "./uploads/$docbook_folder/$docbook_folder.pandochtml" );
 
@@ -224,6 +243,8 @@ function generateOutput( $docbook_folder ) {
 
 	$output_filename = $docbook_folder ."_html.zip";
 	$output_filepath = "./uploads/$docbook_folder/". $output_filename;
+
+	error_log( "Creating ZIP archive $output_filename\n", 3, "./uploads/$docbook_folder/output.log" );
 	$zip = new ZipArchive();
 
 	if( file_exists( $output_filepath ) ) {
@@ -235,23 +256,49 @@ function generateOutput( $docbook_folder ) {
 	}
 
 	foreach( $all_files as $filename => $path ) {
+		error_log( "Adding file $filename to zip archive\n", 3, "./uploads/$docbook_folder/output.log" );
 		$zip->addFromString( $filename, file_get_contents( $path ) );
 	}
+	error_log( "Closing zip archive\n", 3, "./uploads/$docbook_folder/output.log" );
 	$zip->close();
 
 	$output_filename = $docbook_folder .".pdf";
 	$output_filepath = "./uploads/$docbook_folder/". $output_filename;
 
-	$xsltproc_args = "";
-	if ( file_exists( "./uploads/$docbook_folder/xsltproc_args.txt" ) ) {
-		$xsltproc_args = file_get_contents( "./uploads/$docbook_folder/xsltproc_args.txt" );
+	// $xsltproc_args = "";
+	// if ( file_exists( "./uploads/$docbook_folder/xsltproc_args.txt" ) ) {
+		// $xsltproc_args = file_get_contents( "./uploads/$docbook_folder/xsltproc_args.txt" );
+	// }
+
+	error_log( "Deleting old FOP file\n", 3, "./uploads/$docbook_folder/output.log" );
+	if( file_exists( "./uploads/$docbook_folder/$docbook_folder.fo" ) ) {
+		unlink( "./uploads/$docbook_folder/$docbook_folder.fo" );
 	}
 
-	shell_exec( "xsltproc --output ./uploads/$docbook_folder/$docbook_folder.fo $xsltproc_args --stringparam fop1.extensions 1 ./uploads/$docbook_folder/docbookexport.xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
+	error_log( "Creating FOP file\n", 3, "./uploads/$docbook_folder/output.log" );
+	$xslt_output_log = [];
+	$return_value = 0;
+	unlink( "./uploads/$docbook_folder/xslt_fop_output.log" );
+	exec( "xsltproc --output ./uploads/$docbook_folder/$docbook_folder.fo --stringparam fop1.extensions 1 ./uploads/$docbook_folder/docbookexport.xsl ./uploads/$docbook_folder/$docbook_folder.xml >> ./uploads/$docbook_folder/xslt_fop_output.log 2>&1", $xslt_output_log, $return_value );
 
-	shell_exec( "fop -r -fo ./uploads/$docbook_folder/$docbook_folder.fo -pdf $output_filepath" );
+	error_log( implode( "\n", $xslt_output_log ) . "\n", 3, "./uploads/$docbook_folder/output.log" );
+	error_log( "Process exited with code $return_value\n", 3, "./uploads/$docbook_folder/output.log" );
 
-	shell_exec( "./docbook2odf-0.244/utils/docbook2odf -f --debug -output-dir=./uploads/$docbook_folder -xsl-file=./docbook2odf-0.244/xsl ./uploads/$docbook_folder/$docbook_folder.xml" );
+	error_log( "Creating PDF file\n", 3, "./uploads/$docbook_folder/output.log" );
+	$fop_output_log = [];
+	$return_value = 0;
+	exec( "fop -r -fo ./uploads/$docbook_folder/$docbook_folder.fo -pdf $output_filepath >> ./uploads/$docbook_folder/fop_output.log 2>&1", $fop_output_log, $return_value );
+
+	error_log( implode( "\n", $fop_output_log ) . "\n", 3, "./uploads/$docbook_folder/output.log" );
+	error_log( "Process exited with code $return_value\n", 3, "./uploads/$docbook_folder/output.log" );
+
+	error_log( "Creating ODF file\n", 3, "./uploads/$docbook_folder/output.log" );
+	$odf_output_log = [];
+	$return_value = 0;
+	exec( "./docbook2odf-0.244/utils/docbook2odf -f --debug -output-dir=./uploads/$docbook_folder -xsl-file=./docbook2odf-0.244/xsl ./uploads/$docbook_folder/$docbook_folder.xml >> ./uploads/$docbook_folder/odf_output.log 2>&1", $odf_output_log, $return_value );
+
+	error_log( implode( "\n", $odf_output_log ) . "\n", 3, "./uploads/$docbook_folder/output.log" );
+	error_log( "Process exited with code $return_value\n", 3, "./uploads/$docbook_folder/output.log" );
 
 	$all_files = [];
 	$files = scandir( "./uploads/$docbook_folder/$docbook_folder.od.temp/Pictures" );
@@ -282,17 +329,23 @@ function generateOutput( $docbook_folder ) {
 
 	$output_filename = $docbook_folder .".odt";
 	$output_filepath = "./uploads/$docbook_folder/". $output_filename;
+
+	error_log( "Creating ODT file $docbook_folder.odt\n", 3, "./uploads/$docbook_folder/output.log" );
 	$zip = new ZipArchive();
 
 	if ( $zip->open( $output_filepath, ZipArchive::CREATE ) !== TRUE ) {
 		exit( "cannot open <$output_filepath>\n" );
 	}
 	foreach( $all_files as $filename => $path ) {
+		error_log( "Adding file $filename to zip archive\n", 3, "./uploads/$docbook_folder/output.log" );
 		$zip->addFromString( $filename, file_get_contents( $path ) );
 	}
+	error_log( "Closing zip archive\n", 3, "./uploads/$docbook_folder/output.log" );
 	$zip->close();
 
 	$result = json_decode( file_get_contents( "./uploads/$docbook_folder/$docbook_folder.json" ), true );
+
+	error_log( "Updating $docbook_folder.json\n", 3, "./uploads/$docbook_folder/output.log" );
 
 	$result['status'] = 'Docbook generated';
 	$result['docbook_zip'] = "/uploads/$docbook_folder/$docbook_folder" . "_xml.zip";
