@@ -279,7 +279,7 @@ function generateOutput( $docbook_folder ) {
 	$xslt_output_log = [];
 	$return_value = 0;
 	unlink( "./uploads/$docbook_folder/xslt_fop_output.log" );
-	exec( "xsltproc --output ./uploads/$docbook_folder/$docbook_folder.fo --stringparam fop1.extensions 1 ./uploads/$docbook_folder/docbookexport.xsl ./uploads/$docbook_folder/$docbook_folder.xml >> ./uploads/$docbook_folder/xslt_fop_output.log 2>&1", $xslt_output_log, $return_value );
+	exec( "java com.icl.saxon.StyleSheet -o ./uploads/$docbook_folder/$docbook_folder.fo ./uploads/$docbook_folder/$docbook_folder.xml ./uploads/$docbook_folder/docbookexport.xsl >> ./uploads/$docbook_folder/xslt_fop_output.log 2>&1", $xslt_output_log, $return_value );
 
 	error_log( implode( "\n", $xslt_output_log ) . "\n", 3, "./uploads/$docbook_folder/output.log" );
 	error_log( "Process exited with code $return_value\n", 3, "./uploads/$docbook_folder/output.log" );
