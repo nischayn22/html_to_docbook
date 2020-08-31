@@ -24,7 +24,16 @@ if( $request_type == "getDocbook" ) {
 					$xsl_contents = str_replace( 'DOCBOOKXSLPLACEHOLDER', $docbookXslPath, $xsl_contents );
 					file_put_contents( "./uploads/$docbook_folder/$filename", $xsl_contents );
 				} else if ( $ext == "zip" ) {
-					shell_exec( "unzip $filename -d ./uploads/$docbook_folder/" . str_replace( ".zip", "", $filename ) );
+					if ( class_exists( "ZipArchive" ) ) {
+						$zip = new ZipArchive;
+						$res = $zip->open( $filename );
+						if ($res === TRUE) {
+							$zip->extractTo( "./uploads/$docbook_folder/" . str_replace( ".zip", "", $filename ) );
+							$zip->close();
+						}
+					} else {
+						shell_exec( "unzip $filename -d ./uploads/$docbook_folder/" . str_replace( ".zip", "", $filename ) );
+					}
 				}
 			} else {
 				move_uploaded_file( $tmpFilePath, "./uploads/$docbook_folder/images/$filename" );
