@@ -11,7 +11,7 @@ function generateDocbookXML( $docbook_folder ) {
 	$result['status'] = "Starting to Process";
 	file_put_contents( "./uploads/$docbook_folder/$docbook_folder.json", json_encode( $result ) );
 
-	$page_html = file_get_contents( "./uploads/$docbook_folder/$docbook_folder.pandochtml" );
+	$page_html = file_get_contents( "./uploads/$docbook_folder/$docbook_folder" . "_pandoc.html" );
 
 	$dom = new DOMDocument();
 	libxml_use_internal_errors(true);
@@ -236,7 +236,7 @@ function generateOutput( $docbook_folder ) {
 	error_log( implode( "\n", $xslt_output_log ) . "\n", 3, "./uploads/$docbook_folder/output.log" );
 	error_log( "Process exited with code $return_value\n", 3, "./uploads/$docbook_folder/output.log" );
 
-	$page_html = file_get_contents( "./uploads/$docbook_folder/$docbook_folder.pandochtml" );
+	$page_html = file_get_contents( "./uploads/$docbook_folder/$docbook_folder" . "_pandoc.html" );
 
 	$all_files["$docbook_folder.html"] = "./uploads/$docbook_folder/$docbook_folder.html";
 	$all_files["docbookexport_styles.css"] = "./uploads/$docbook_folder/docbookexport_styles.css";
