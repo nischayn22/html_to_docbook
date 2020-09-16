@@ -15,7 +15,7 @@ function generateDocbookXML( $docbook_folder ) {
 
 	$dom = new DOMDocument();
 	libxml_use_internal_errors(true);
-	$dom->loadHtml( $page_html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+	$dom->loadHtml( mb_convert_encoding( $page_html, 'HTML-ENTITIES', 'UTF-8' ), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
 	libxml_clear_errors();
 
 	$xreflabels = [];
