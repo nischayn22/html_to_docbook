@@ -45,6 +45,13 @@ function generateDocbookXML( $docbook_folder ) {
 			$pandoc_node->appendChild( $tmpDoc->createElement( 'title', $label ) );
 		}
 
+		// TODO: Move to XSL implementation
+		// These kind of modifications should typically be done using XSL
+		foreach( $tmpDoc->getElementsByTagName( 'informaltable' ) as $pandoc_node ) {
+			$pandoc_node->setAttribute( 'frame', "all" );
+			$pandoc_node->setAttribute( 'pgwide', "1" );
+		}
+
 		$replace_nodes_pandoc = [];
 		foreach( $tmpDoc->getElementsByTagName( 'link' ) as $pandoc_node ) {
 			if ( $pandoc_node->hasAttribute( 'role' ) && $pandoc_node->getAttribute( 'role' ) == 'xref' ) {
