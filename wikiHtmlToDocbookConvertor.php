@@ -34,6 +34,10 @@ if( $request_type == "getDocbook" ) {
 					} else {
 						shell_exec( "unzip $filename -d ./uploads/$docbook_folder/" . str_replace( ".zip", "", $filename ) );
 					}
+				} else if ( $filename == "xsl_repository.json" ) {
+					$repo_path = json_decode( file_get_contents( "./uploads/$docbook_folder/$filename" ) )['DocBookExportXSLRepository'];
+					shell_exec( "git clone $repo_path ./uploads/$docbook_folder/" . basename( $repo_path ) );
+					shell_exec( "git -C ./uploads/$docbook_folder/" . basename( $repo_path ) . " pull -s recursive -X theirs" );
 				}
 			} else {
 				move_uploaded_file( $tmpFilePath, "./uploads/$docbook_folder/images/$filename" );
