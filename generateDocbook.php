@@ -7,9 +7,17 @@ generateDocbookXML( $argv[1] );
 generateOutput( $argv[1] );
 
 function generateDocbookXML( $docbook_folder ) {
-	$result = array();
+	$result = json_decode( file_get_contents( "./uploads/$docbook_folder/$docbook_folder.json" ), true );
 	$result['status'] = "Starting to Process";
 	file_put_contents( "./uploads/$docbook_folder/$docbook_folder.json", json_encode( $result ) );
+
+	if ( file_exists( "./uploads/$docbook_folder/xsl_repository.json" ) ) {
+		$repo_path = json_decode( file_get_contents( "./uploads/$docbook_folder/xsl_repository.json" ), true )['DocBookExportXSLRepository'];
+		if ( !file_exists( "./uploads/$docbook_folder/" . basename( $repo_path ) ) ) {
+			shell_exec( "git clone $repo_path ./uploads/$docbook_folder/" . basename( $repo_path ) );
+		}
+		shell_exec( "git -C ./uploads/$docbook_folder/" . basename( $repo_path ) . " pull -s recursive -X theirs" );
+	}
 
 	$page_html = file_get_contents( "./uploads/$docbook_folder/$docbook_folder" . "_pandoc.html" );
 
