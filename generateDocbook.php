@@ -181,16 +181,7 @@ function recursiveAddIndexTerms( $dom, &$node, $index_terms ) {
 			return;
 		}
 
-		if ( $node->parentNode->tagName == "title" ) {
-			$tmpDoc->loadXML( "<body>$index_term_xml_all</body>" );
-			$replacement = $tmpDoc->getElementsByTagName( 'body' )->item(0)->childNodes;
-
-			$new_node = $dom->createDocumentFragment();
-			for ($i = 0; $i <= $replacement->length - 1; $i++) {
-				$child = $dom->importNode($replacement->item($i), true);
-				$new_node->appendChild($child);
-			}
-			$node->parentNode->parentNode->insertBefore( $new_node, $node->parentNode );
+		if ( $node->parentNode->tagName == "title" || $node->parentNode->tagName == "corpauthor" ) {
 			return;
 		}
 
