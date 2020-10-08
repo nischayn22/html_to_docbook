@@ -160,14 +160,18 @@ function recursiveAddIndexTerms( $dom, &$node, $index_terms ) {
 		foreach( $index_terms as $index_term => $index_data ) {
 			$index_term = trim($index_term);
 			$index_term_xml = '<indexterm><primary>' . $index_term . '</primary></indexterm>';
+			$search_term = $index_term;
 			if ( !empty( $index_data['primary'] ) ) {
 				$index_term_xml = '<indexterm><primary>' . $index_data['primary'] . '</primary><secondary>'. $index_term .'</secondary></indexterm>';
+				$search_term = trim( $index_data['primary'] . " " . $index_term );
 			}
-			if ( strpos( $node_content, $index_term ) !== FALSE ) {
+
+			$node_content = trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $node_content)));
+			if ( strpos( $node_content, $search_term ) !== FALSE ) {
 				$index_term_xml_all .= $index_term_xml;
 				$node_content = str_replace(
-					$index_term, 
-					$index_term . $index_term_xml,
+					$search_term,
+					$search_term . $index_term_xml,
 					$node_content 
 				);
 				$indexOccurs = true;
