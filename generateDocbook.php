@@ -357,7 +357,7 @@ function generateOutput( $docbook_folder ) {
 
 	error_log( "Updating $docbook_folder.json\n", 3, "./uploads/$docbook_folder/output.log" );
 
-	$result['status'] = 'Docbook generated';
+	$result['status'] = 'Docbook generated at ' . (new DateTime())->format("d M y H:i");
 	$result['docbook_zip'] = "/uploads/$docbook_folder/$docbook_folder" . "_xml.zip";
 	$result['docbook_odf'] = "/uploads/$docbook_folder/$docbook_folder.odt";
 	$result['docbook_html'] = "/uploads/$docbook_folder/$docbook_folder" . "_html.zip";
