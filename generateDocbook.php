@@ -16,7 +16,7 @@ function generateDocbookXML( $docbook_folder ) {
 		if ( !file_exists( "./uploads/$docbook_folder/" . basename( $repo_path ) ) ) {
 			shell_exec( "git clone $repo_path ./uploads/$docbook_folder/" . basename( $repo_path ) );
 		}
-		shell_exec( "git -C ./uploads/$docbook_folder/" . basename( $repo_path ) . " pull -s recursive -X theirs" );
+		shell_exec( "git -C ./uploads/$docbook_folder/" . basename( $repo_path ) . " pull origin master -s recursive -X theirs" );
 	}
 
 	$page_html = file_get_contents( "./uploads/$docbook_folder/$docbook_folder" . "_pandoc.html" );
