@@ -46,6 +46,29 @@ function generateDocbookXML( $docbook_folder ) {
 		$tmpDoc = new DOMDocument();
 		$tmpDoc->loadXML( '<body>' . $pandoc_output . '</body>' );
 
+		foreach( $tmpDoc->getElementsByTagName( 'literallayout' ) as $pandoc_node ) {
+			$paraNode = $tmpDoc->createElement( 'para' );
+			foreach( $pandoc_node->attributes as $attribute ) {
+				$paraNode->setAttribute( $attribute->name, $attribute->value );
+			}
+			foreach($pandoc_node->childNodes as $child) {
+				$pandoc_node->appendChild($pandoc_node->removeChild($child));
+			}
+			$pandoc_node->parentNode->replaceChild( $paraNode, $pandoc_node );
+		}
+
+		foreach( $tmpDoc->getElementsByTagName( 'link' ) as $pandoc_node ) {
+			$ulinkNode = $tmpDoc->createElement( 'ulink' );
+			$pandoc_node->parentNode->replaceChild( $ulinkNode, $pandoc_node );
+			foreach( $pandoc_node->attributes as $attribute ) {
+				$attr_name = $attribute->name;
+				if ( $attribute->name == "xlink:href" ) {
+					$attr_name = "url";
+				}
+				$ulinkNode->setAttribute( $attr_name, $attribute->value );
+			}	
+		}
+
 		foreach( $tmpDoc->getElementsByTagName( 'figure' ) as $pandoc_node ) {
 			$label = array_shift( $xreflabels );
 			$pandoc_node->setAttribute( 'xreflabel', $label );
@@ -357,7 +380,7 @@ function generateOutput( $docbook_folder ) {
 
 	error_log( "Updating $docbook_folder.json\n", 3, "./uploads/$docbook_folder/output.log" );
 
-	$result['status'] = 'Docbook generated at ' . (new DateTime())->format("d M y H:i");
+	$result['status'] = 'Docbook generated at ' . (new DateTime())->format("d M y H:i") . ;
 	$result['docbook_zip'] = "/uploads/$docbook_folder/$docbook_folder" . "_xml.zip";
 	$result['docbook_odf'] = "/uploads/$docbook_folder/$docbook_folder.odt";
 	$result['docbook_html'] = "/uploads/$docbook_folder/$docbook_folder" . "_html.zip";
