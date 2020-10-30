@@ -48,13 +48,13 @@ function generateDocbookXML( $docbook_folder ) {
 
 		foreach( $tmpDoc->getElementsByTagName( 'literallayout' ) as $pandoc_node ) {
 			$paraNode = $tmpDoc->createElement( 'para' );
+			$pandoc_node->parentNode->replaceChild( $paraNode, $pandoc_node );
 			foreach( $pandoc_node->attributes as $attribute ) {
 				$paraNode->setAttribute( $attribute->name, $attribute->value );
 			}
 			foreach($pandoc_node->childNodes as $child) {
-				$pandoc_node->appendChild($pandoc_node->removeChild($child));
+				$paraNode->appendChild($pandoc_node->removeChild($child));
 			}
-			$pandoc_node->parentNode->replaceChild( $paraNode, $pandoc_node );
 		}
 
 		foreach( $tmpDoc->getElementsByTagName( 'link' ) as $pandoc_node ) {
