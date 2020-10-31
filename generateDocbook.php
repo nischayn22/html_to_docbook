@@ -75,7 +75,7 @@ function generateDocbookXML( $docbook_folder ) {
 		foreach( $tmpDoc->getElementsByTagName( 'figure' ) as $pandoc_node ) {
 			$label = array_shift( $xreflabels );
 			$pandoc_node->setAttribute( 'xreflabel', $label );
-			$pandoc_node->setAttribute( 'id', $label );
+			$pandoc_node->setAttribute( 'id', str_replace( " ", "_", $label ) );
 			$pandoc_node->appendChild( $tmpDoc->createElement( 'title', $label ) );
 		}
 
