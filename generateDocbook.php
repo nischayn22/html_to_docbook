@@ -202,6 +202,7 @@ function recursiveAddIndexTerms( $dom, &$node, $index_terms ) {
 					$node_content 
 				);
 				$indexOccurs = true;
+				break;
 			}
 		}
 		if ( !$indexOccurs ) {
@@ -221,6 +222,7 @@ function recursiveAddIndexTerms( $dom, &$node, $index_terms ) {
 			$new_node->appendChild($child);
 		}
 		$node->parentNode->replaceChild( $new_node, $node );
+		recursiveAddIndexTerms( $dom, $new_node, $index_terms );
 	}
 }
 
