@@ -53,7 +53,7 @@ function generateDocbookXML( $docbook_folder ) {
 				$paraNode->setAttribute( $attribute->name, $attribute->value );
 			}
 			foreach($pandoc_node->childNodes as $child) {
-				$paraNode->appendChild($pandoc_node->removeChild($child));
+				$paraNode->appendChild($child);
 			}
 			if ( $pandoc_node->childNodes->length == 0 ) {
 				$paraNode->textContent = $pandoc_node->textContent;
