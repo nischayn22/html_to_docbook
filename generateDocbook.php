@@ -46,6 +46,7 @@ function generateDocbookXML( $docbook_folder ) {
 		$tmpDoc = new DOMDocument();
 		$tmpDoc->loadXML( '<body>' . $pandoc_output . '</body>' );
 
+		$replace_nodes_pandoc = [];
 		foreach( $tmpDoc->getElementsByTagName( 'literallayout' ) as $pandoc_node ) {
 			$paraNode = $tmpDoc->createElement( 'para' );
 			foreach( $pandoc_node->attributes as $attribute ) {
@@ -54,14 +55,20 @@ function generateDocbookXML( $docbook_folder ) {
 			foreach($pandoc_node->childNodes as $child) {
 				$paraNode->appendChild($pandoc_node->removeChild($child));
 			}
-			$pandoc_node->parentNode->replaceChild( $paraNode, $pandoc_node );
+			if ( $pandoc_node->childNodes->length == 0 ) {
+				$paraNode->textContent = $pandoc_node->textContent;
+			}
+			$replace_nodes_pandoc[] = [ $paraNode, $pandoc_node ];
 		}
 
 		foreach( $tmpDoc->getElementsByTagName( 'link' ) as $pandoc_node ) {
 			if ( $pandoc_node->hasAttribute( 'xlink:href' ) ) {
 				$ulinkNode = $tmpDoc->createElement( 'ulink' );
 				$ulinkNode->setAttribute( "url", $pandoc_node->getAttribute( "xlink:href" ) );
-				$pandoc_node->parentNode->replaceChild( $ulinkNode, $pandoc_node );
+				if ( $pandoc_node->childNodes->length == 0 ) {
+					$ulinkNode->textContent = $pandoc_node->textContent;
+				}
+				$replace_nodes_pandoc[] = [ $ulinkNode, $pandoc_node ];
 			}
 		}
 
@@ -79,7 +86,6 @@ function generateDocbookXML( $docbook_folder ) {
 			$pandoc_node->setAttribute( 'pgwide', "1" );
 		}
 
-		$replace_nodes_pandoc = [];
 		foreach( $tmpDoc->getElementsByTagName( 'link' ) as $pandoc_node ) {
 			if ( $pandoc_node->hasAttribute( 'role' ) && $pandoc_node->getAttribute( 'role' ) == 'xref' ) {
 				$label = str_replace( '_', ' ', explode( '#', $pandoc_node->getAttribute( 'xlink:href' ) )[1] );
