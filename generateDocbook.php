@@ -132,7 +132,7 @@ function generateDocbookXML( $docbook_folder ) {
 			$pandoc_node->setAttribute( 'fileref', "images/$image_filename" );
 		}
 		foreach( $replace_nodes_pandoc as $replace_pair ) {
-			if ( $replace_pair[1] != null ) {
+			if ( $replace_pair[1]->parentNode != null ) {
 				$replace_pair[1]->parentNode->replaceChild( $replace_pair[0], $replace_pair[1] );
 			}
 		}
