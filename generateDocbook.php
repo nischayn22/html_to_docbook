@@ -58,15 +58,11 @@ function generateDocbookXML( $docbook_folder ) {
 		}
 
 		foreach( $tmpDoc->getElementsByTagName( 'link' ) as $pandoc_node ) {
-			$ulinkNode = $tmpDoc->createElement( 'ulink' );
-			$pandoc_node->parentNode->replaceChild( $ulinkNode, $pandoc_node );
-			foreach( $pandoc_node->attributes as $attribute ) {
-				$attr_name = $attribute->name;
-				if ( $attribute->name == "xlink:href" ) {
-					$attr_name = "url";
-				}
-				$ulinkNode->setAttribute( $attr_name, $attribute->value );
-			}	
+			if ( $pandoc_node->hasAttribute( 'xlink:href' ) ) {
+				$ulinkNode = $tmpDoc->createElement( 'ulink' );
+				$pandoc_node->parentNode->replaceChild( $ulinkNode, $pandoc_node );
+				$ulinkNode->setAttribute( "xlink:href", $pandoc_node->getAttribute( "xlink:href" ) );
+			}
 		}
 
 		foreach( $tmpDoc->getElementsByTagName( 'figure' ) as $pandoc_node ) {
