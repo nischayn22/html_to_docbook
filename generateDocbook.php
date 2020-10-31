@@ -76,7 +76,7 @@ function generateDocbookXML( $docbook_folder ) {
 			$label = array_shift( $xreflabels );
 			$pandoc_node->setAttribute( 'xreflabel', $label );
 			$pandoc_node->setAttribute( 'id', str_replace( " ", "_", $label ) );
-			$pandoc_node->appendChild( $tmpDoc->createElement( 'title', $label ) );
+			$pandoc_node->insertBefore( $tmpDoc->createElement( 'title', $label ), $pandoc_node->firstChild );
 		}
 
 		// TODO: Move to XSL implementation
