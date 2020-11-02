@@ -175,6 +175,9 @@ function generateDocbookXML( $docbook_folder ) {
 }
 
 function recursiveAddIndexTerms( $dom, &$node, $index_terms ) {
+	if ( isset( $node->tagName ) && $node->tagName == "bookinfo" ) {
+		return;
+	}
 	if( $node->hasChildNodes() ) {
 		foreach( $node->childNodes as $childNode ) {
 			recursiveAddIndexTerms( $dom, $childNode, $index_terms );
