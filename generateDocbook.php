@@ -62,7 +62,7 @@ function generateDocbookXML( $docbook_folder ) {
 		}
 
 		foreach( $tmpDoc->getElementsByTagName( 'link' ) as $pandoc_node ) {
-			if ( $pandoc_node->hasAttribute( 'xlink:href' ) && ( !$pandoc_node->hasAttribute( 'role' ) || $pandoc_node->getAttribute( 'role' ) == "external text" ) || $pandoc_node->getAttribute( 'role' ) == "external free" ) || $pandoc_node->getAttribute( 'role' ) == "new" ) ) {
+			if ( $pandoc_node->hasAttribute( 'xlink:href' ) && ( !$pandoc_node->hasAttribute( 'role' ) || $pandoc_node->getAttribute( 'role' ) == "external text" || $pandoc_node->getAttribute( 'role' ) == "external free" || $pandoc_node->getAttribute( 'role' ) == "new" ) ) {
 				$ulinkNode = $tmpDoc->createElement( 'ulink' );
 				$ulinkNode->setAttribute( "url", $pandoc_node->getAttribute( "xlink:href" ) );
 				if ( $pandoc_node->childNodes->length == 0 ) {
