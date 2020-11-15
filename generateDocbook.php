@@ -112,7 +112,7 @@ function generateDocbookXML( $docbook_folder ) {
 			} elseif ( $pandoc_node->hasAttribute( 'role' ) && $pandoc_node->getAttribute( 'role' ) == 'footnoteref' ) {
 				$footnoteNode = $tmpDoc->createElement( 'footnoteref' );
 				if ( $pandoc_node->hasAttribute( 'id' ) ) {
-					$footnoteNode->setAttribute( 'linkedn', $pandoc_node->getAttribute( 'id' ) );
+					$footnoteNode->setAttribute( 'linkend', $pandoc_node->getAttribute( 'id' ) );
 				}
 				$replace_nodes_pandoc[] = [ $footnoteNode, $pandoc_node ];
 			}
