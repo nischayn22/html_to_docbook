@@ -97,6 +97,9 @@ function generateDocbookXML( $docbook_folder ) {
 			if ( $pandoc_node->hasAttribute( 'role' ) && $pandoc_node->getAttribute( 'role' ) == 'footnote' ) {
 				$footnoteNode = $tmpDoc->createElement( 'footnote' );
 				$footnoteParaNode = $tmpDoc->createElement( 'para' );
+				if ( $pandoc_node->hasAttribute( 'id' ) ) {
+					$footnoteNode->setAttribute( 'id', $pandoc_node->getAttribute( 'id' ) );
+				}
 				if ( $pandoc_node->hasAttribute( 'xlink:href' ) ) {
 					$footnoteParaNode->textContent = urldecode( $pandoc_node->getAttribute( 'xlink:href' ) );
 				} else if ( $pandoc_node->hasAttribute( 'url' ) ) {
@@ -105,6 +108,12 @@ function generateDocbookXML( $docbook_folder ) {
 					$footnoteParaNode->textContent = "Text Missing";
 				}
 				$footnoteNode->appendChild( $footnoteParaNode );
+				$replace_nodes_pandoc[] = [ $footnoteNode, $pandoc_node ];
+			} elseif ( $pandoc_node->hasAttribute( 'role' ) && $pandoc_node->getAttribute( 'role' ) == 'footnoteref' ) {
+				$footnoteNode = $tmpDoc->createElement( 'footnoteref' );
+				if ( $pandoc_node->hasAttribute( 'id' ) ) {
+					$footnoteNode->setAttribute( 'linkedn', $pandoc_node->getAttribute( 'id' ) );
+				}
 				$replace_nodes_pandoc[] = [ $footnoteNode, $pandoc_node ];
 			}
 		}
