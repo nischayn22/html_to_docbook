@@ -100,7 +100,9 @@ function generateDocbookXML( $docbook_folder ) {
 				if ( $pandoc_node->hasAttribute( 'id' ) ) {
 					$footnoteNode->setAttribute( 'id', $pandoc_node->getAttribute( 'id' ) );
 				}
-				if ( $pandoc_node->hasAttribute( 'xlink:href' ) ) {
+				if ( !empty( $pandoc_node->textContent ) ) {
+					$footnoteParaNode->textContent = $pandoc_node->textContent;
+				} else if ( $pandoc_node->hasAttribute( 'xlink:href' ) ) {
 					$footnoteParaNode->textContent = urldecode( $pandoc_node->getAttribute( 'xlink:href' ) );
 				} else if ( $pandoc_node->hasAttribute( 'url' ) ) {
 					$footnoteParaNode->textContent = urldecode( $pandoc_node->getAttribute( 'url' ) );
